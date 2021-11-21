@@ -1,0 +1,196 @@
+import java.sql.*;
+import java.util.Scanner;
+public class CampusMinds {
+	public static void main(String []args) throws SQLException {
+		try {
+			int choice;
+			do {
+			Mind m=new Mind();
+			System.out.println("Choose an option \n1.Insert Campus mind details "
+					+ "\n2.To display no.of CM's in a Particular track "
+					+ "\n3.To upadate Course in progress of a CM"
+					+ "\n4.To display all CM's as per no.of courses completed"
+					+ "\n5.Exit");
+			Scanner s=new Scanner(System.in);
+			choice=s.nextInt();
+			s.close();
+			switch(choice) {
+			case 1:{
+				m.getcminddetails();
+				m.insertmind();
+			break;
+			}
+			case 2:{
+				m.display();
+			break;
+			}
+			case 3:{
+				m.updateCampus();
+			break;
+			}
+			case 4:{
+				m.display1();
+			break;
+			}
+			case 5:{
+				System.out.println("Exiting! Thanks fro using");
+				break;
+			}
+			default : System.out.println("Wrong input");
+				
+			}
+			}while(choice<5);
+		}
+		catch(SQLException e){
+			System.out.println(e.getMessage());
+		}
+	}
+}
+	class Mind{
+	private String ID,name,track,cp;
+	private int cc;
+	Scanner s=new Scanner(System.in);
+	public void getcminddetails() {
+		System.out.println("Enter Campus Mind MID:");
+		ID=s.next();
+		System.out.println("Enter Campus Mind Name:");
+		name=s.next();
+		System.out.println("Enter Campus Mind Track:");
+		track=s.next();
+		System.out.println("Enter No.of courses completed");
+		cc=s.nextInt();
+		System.out.println("Enter Course in Progress");
+		cp=s.next();
+	}
+	public void insertmind() throws SQLException {
+		try {
+			Connect con=new Connect("jdbc:mysql://localhost:3306/demo","root","Rama@navy143");
+			Connection conn=con.getConnection();
+			String sql = "insert into CampusMinds values(?,?,?,?)";
+
+			 PreparedStatement ps = conn.prepareStatement(sql);
+
+			 ps.setString(1, ID);
+			 ps.setString(2, name);
+			 ps.setString(3, track);
+			 ps.setInt(4, cc);
+			 ps.setString(5, cp);
+			 ps.execute();
+			 
+			 System.out.println("Record insertion success");
+
+			 con.closeConnection(conn, ps);
+			
+		}
+		catch(SQLException e){
+			System.out.println(e.getMessage());
+		}
+	}
+	public void display() throws SQLException{
+		try {
+		Connect con=new Connect("jdbc:mysql://localhost:3306/demo","root","Rama@navy143");
+		Connection conn=con.getConnection();
+		Scanner s = new Scanner(System.in);
+		System.out.println("Enter track you want to visit");
+		 String track = s.next();
+			String sql="select * from CampusMinds where Track=?;";
+			PreparedStatement ps=conn.prepareStatement(sql,ResultSet.TYPE_SCROLL_INSENSITIVE,ResultSet.CONCUR_UPDATABLE);
+			ps.setString(1, track);
+			 ResultSet rs = ps.executeQuery();
+			 if(rs.next() == false) {
+			 System.out.println("No such record found in database");
+			 }
+
+			 else {
+			 rs.previous();
+			 while(rs.next()) {
+			 System.out.println(rs.getString(1) + " , " + rs.getString(2) + " , " + rs.getString(3) + " , " +
+			rs.getInt(4) + " , " +rs.getString(5));
+			 }
+			 }
+			 con.closeConnection(conn, ps);	
+					
+				
+		}
+		catch(SQLException e) {
+			System.out.println(e.getMessage());
+		}
+	}
+	public void updateCampus() throws SQLException {
+		 try {
+			 Connect con=new Connect("jdbc:mysql://localhost:3306/demo","root","Rama@navy143");
+				Connection conn=con.getConnection();
+		Scanner s = new Scanner(System.in);
+		System.out.println("Enter Campus mind MID");
+		 String newID = s.next();
+		 System.out.println("Enter new Course in progress");
+		 String newcp = s.next();
+		 String sql = "update Campusminds set Cor_pro = ? where MID = ?";
+		 PreparedStatement ps = conn.prepareStatement(sql);
+		 ps.setString(1, newcp);
+		 ps.setString(2, newID);
+		 int i = ps.executeUpdate();
+		 if(i > 0) {
+		 System.out.println("Record successfully updated");
+		 }
+		 else {
+		 System.out.println("No such record found in database");
+		 }
+		 con.closeConnection(conn, ps);
+		}
+		 catch(SQLException e){
+
+		 System.out.println(e.getMessage());
+		 }
+		}
+	public void display1() throws SQLException{
+		try {
+		Connect con=new Connect("jdbc:mysql://localhost:3306/demo","root","Rama@navy143");
+		Connection conn=con.getConnection();
+			String sql="select * from CampusMinds order by Cor_com desc;";
+			PreparedStatement ps=conn.prepareStatement(sql,ResultSet.TYPE_SCROLL_INSENSITIVE,ResultSet.CONCUR_UPDATABLE);
+			 ResultSet rs = ps.executeQuery();
+			 if(rs.next() == false) {
+			 System.out.println("No records found in database");
+			 }
+
+			 else {
+			 rs.previous();
+			 while(rs.next()) {
+			 System.out.println(rs.getString(1) + " , " + rs.getString(2) + " , " + rs.getString(3) + " , " +
+			rs.getInt(4) + " , " +rs.getString(5));
+			 }
+			 }
+			 con.closeConnection(conn, ps);	
+					
+				
+		}
+		catch(SQLException e) {
+			System.out.println(e.getMessage());
+		}
+	}
+}
+	class Connect{
+			String url;
+			String un;
+			String pass;
+			public Connect(String url, String un, String pass) {
+			super();
+			this.url = url;
+			this.un = un;
+			this.pass = pass;
+			}
+			public Connection getConnection() throws SQLException {
+			 Connection con = DriverManager.getConnection(url,un ,pass);
+
+			 System.out.println("Database Connection success");
+
+			 return con;
+
+			}
+			public void closeConnection(Connection conn,Statement s) throws SQLException {
+			conn.close();
+			s.close();
+			System.out.println("Connection closed");
+			}
+	}
